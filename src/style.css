@@ -1,5 +1,5 @@
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Syne Mono', monospace;
   font-size: 16px;
   line-height: 24px;
   font-weight: 400;
@@ -38,10 +38,7 @@ h1 {
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
   padding: 2rem;
-  text-align: center;
 }
 
 .logo {
@@ -94,4 +91,23 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+.gradient-text {
+  background-image: linear-gradient( 111.2deg,  rgba(232,5,5,1) 1.7%, rgba(245,49,191,1) 98.7% );
+  background-size: 100%;
+  background-repeat: repeat;
+  background-color: red;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -moz-background-clip: text;
+  -moz-text-fill-color: transparent;
+  text-shadow: 2px 2px 2px rgb(196 3 3 / 50%);
+  font-weight: bold;
+  font-size: 5rem;
+  line-height: normal;
+}
+.counter-set{
+  display: flex;
+  align-items: center;
 }

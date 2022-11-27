@@ -1,30 +1,71 @@
 import './style.css'
-import typescriptLogo from './typescript.svg'
-import { setupCounter } from './counter'
-const worker = new Worker('/worker.ts');
 
-worker.onmessage = (e) => {
-  console.log(e.data);
-};
+import { Emitter } from './emitter';
 
-worker.postMessage('0xe8fff3dezv');
+const limit = 100;
+const chunkSize = 10;
+
+const [command, event] = [new Emitter<Commands>(), new Emitter<Events>()]
+
+function initWorker(){
+  const worker = new Worker(new URL('./worker.ts', import.meta.url));
+  worker.onmessage = ({data}) => event.emit(data.type, ...data.data);
+
+  command.on('execute', (limit, chunkSize) => worker.postMessage({
+    type: 'execute', data: [limit, chunkSize]
+  }));
+
+  event.on('chunckCreated', (index, chunk) => {
+    updateView(index, chunk)
+    console.log('Created a new chat thread!', index, chunk)
+  });
+}
+
+
+
+function updateView(index: number, chunk: Array<number>){
+  const [output, view] = ['#output', '#view'].map(id => document.querySelector(id))
+  if(!view) throw new Error('View not found')
+  if(!output) throw new Error('Output not found')
+
+  // const line = `<div>Chunk ${index} [${chunk[0]}${'.'.repeat(10)}${chunk[chunk.length-1]}]</div>`
+  const line = `<div>Chunk ${index} ${JSON.stringify(chunk)}</div>`
+  output.innerHTML =  output.innerHTML.concat(line);
+  view.scrollIntoView({block: "end", behavior: "smooth"});
+}
+
+initWorker()
+
+export function setupCounter(element: HTMLButtonElement) {
+  let counter = 0
+  const setCounter = (count: number) => {
+    counter = count
+    element.innerHTML = `count is ${counter}`
+  }
+  element.addEventListener('click', () => command.emit('execute', limit, chunkSize))
+  setCounter(0)
+}
+
+const JpNums = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
+
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
+  <div id="view">
     <div class="card">
-      <button id="counter" type="button"></button>
+      <button id="counter">Start huge chunk task</button>
     </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
+    <div id="output">
+    </div>
+
   </div>
 `
 
 setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+
+type Commands = {
+  execute: [size: number, chunkSize: number]
+}
+
+type Events = {
+  chunckCreated: [index: number, data: number[]]
+}
